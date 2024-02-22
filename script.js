@@ -3,6 +3,11 @@ $(document).ready(function() {
   var chats = [];
   var chat_history_current_key = "";
   var open_ai_key = localStorage.getItem('open-ai-key');
+  current_model = $("#ai-version-selector").val();
+
+  $("#ai-version-selector").on('change', function() {
+    current_model = $(this).val();
+  })
 
   $("#clear-chat").click(function() {
     $("#chatbox").empty();
@@ -45,6 +50,7 @@ $(document).ready(function() {
         $("#chatbox").append("<p class='ai-output'>" + chat_history[i].content.replaceAll("\n","<br>").replaceAll(" ", "&nbsp") + "</p>");
       }
     }
+    $("#chatbox").scrollTop($("#chatbox")[0].scrollHeight);
   });
 
   $("#submit").click(function() {
@@ -71,8 +77,18 @@ $(document).ready(function() {
       $("#chat-list li.active").text(userInput);
     }
 
+    var loader = `<div class="text-center">
+                    <div class="spinner-border text-center" role="status">
+                      <span class="sr-only">Loading...</span>
+                    </div>
+                  </div>
+    `
+
+    $("#chatbox").append(loader);
+    $("#chatbox").scrollTop($("#chatbox")[0].scrollHeight);
+
     var data = {
-      "model": "gpt-3.5-turbo",
+      "model": current_model,
       "messages": chat_history
     }
 
@@ -94,9 +110,19 @@ $(document).ready(function() {
           "content": response
         });
         localStorage.setItem(chat_history_current_key, JSON.stringify(chat_history));
+        $(".spinner-border").remove();
         $("#chatbox").append("<p class='ai-output'>" + response.replaceAll("\n","<br>").replaceAll(" ", "&nbsp") + "</p>");
+        $("#chatbox").scrollTop($("#chatbox")[0].scrollHeight);
       }
     })
+  })
+
+  $("#user-input").keypress(function(e) {
+    if(e.which == 13) {
+      if($("#user-input").val() != "") {
+        $("#submit").click();
+      }
+    }
   })
 
   $("#setting-save-button").click(function() {
